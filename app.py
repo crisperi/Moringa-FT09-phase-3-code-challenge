@@ -1,11 +1,11 @@
+
 from database.setup import create_tables
-from database.connection import get_db_connection
+from database.connection import get_db_connection, execute_query
 from models.article import Article
 from models.author import Author
 from models.magazine import Magazine
 
 def main():
-    # Initialize the database and create tables
     create_tables()
 
     # Collect user input for the author, magazine, and article
@@ -15,63 +15,27 @@ def main():
     article_title = input("Enter article title: ")
     article_content = input("Enter article content: ")
 
-    # Connect to the database
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    # Validate user inputs
+    if not author_name or not magazine_name or not article_title or not article_content:
+        print("All fields must be filled!")
+        return
 
-    # Insert new author, magazine, and article into the database
     try:
         # Create an author
-        cursor.execute('INSERT INTO authors (name) VALUES (?)', (author_name,))
-        author_id = cursor.lastrowid  # Use this to fetch the id of the newly created author
+        author = Author(author_name)
 
         # Create a magazine
-        cursor.execute('INSERT INTO magazines (name, category) VALUES (?, ?)', (magazine_name, magazine_category))
-        magazine_id = cursor.lastrowid  # Use this to fetch the id of the newly created magazine
+        magazine = Magazine(None, magazine_name, magazine_category)
 
         # Create an article
-        cursor.execute('INSERT INTO articles (title, content, author_id, magazine_id) VALUES (?, ?, ?, ?)', 
-                       (article_title, article_content, author_id, magazine_id))
+        article = Article(article_title, article_content, author, magazine)
 
-        # Commit the changes to the database
-        conn.commit()
+        print(f"Article '{article.title}' created successfully in '{magazine.name}' magazine by {author.name}!")
 
+    except ValueError as e:
+        print(f"Error: {e}")
     except Exception as e:
-        print(f"Error while inserting records: {e}")
-        conn.rollback()
-    
-    # Fetch inserted data from the database
-    try:
-        # Query all magazines
-        cursor.execute('SELECT * FROM magazines')
-        magazines = cursor.fetchall()
-
-        # Query all authors
-        cursor.execute('SELECT * FROM authors')
-        authors = cursor.fetchall()
-
-        # Query all articles
-        cursor.execute('SELECT * FROM articles')
-        articles = cursor.fetchall()
-
-    except Exception as e:
-        print(f"Error while fetching records: {e}")
-
-    finally:
-        conn.close()
-
-    # Display results
-    print("\nMagazines:")
-    for magazine in magazines:
-        print(Magazine(magazine["id"], magazine["name"], magazine["category"]))
-
-    print("\nAuthors:")
-    for author in authors:
-        print(Author(author["id"], author["name"]))
-
-    print("\nArticles:")
-    for article in articles:
-        print(Article(article["id"], article["title"], article["content"], article["author_id"], article["magazine_id"]))
+        print(f"Unexpected error: {e}")
 
 if __name__ == "__main__":
     main()
