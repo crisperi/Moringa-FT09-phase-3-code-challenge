@@ -1,4 +1,5 @@
 import sqlite3
+from database.connection import get_db_connection
 
 class Author:
     def __init__(self,name, id=None,category=None):
@@ -40,7 +41,7 @@ class Author:
         return self._name
 
     def articles(self):
-        conn = sqlite3.connect('magazine.db')
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('''
         SELECT * FROM articles WHERE author_id = ?

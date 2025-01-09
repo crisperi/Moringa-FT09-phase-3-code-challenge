@@ -1,29 +1,28 @@
 import sqlite3
 
+from database.connection import get_db_connection
+
 class Magazine:
     def __init__(self, id, name, category):
-        """
-        Initialize a magazine.
-
-        :param id: The ID of the magazine.
-        :param name: The name of the magazine.
-        :param category: The category of the magazine (e.g., Technology, Fashion).
-        """
-        self.id = id
+        self.id = id  
         self.name = name
         self.category = category
-    
-    
-    def fetch_from_db(query, params=()):
-        conn = sqlite3.connect('../database/magazine.db')
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        result = cursor.fetchall()
-        conn.close()
-        return result
+        self.create_magazine()
+
+    def create_magazine(self):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO magazines (name, category) VALUES (?, ?)', (self.name, self.category))
+            conn.commit()
+            self.id = cursor.lastrowid 
+        except Exception as e:
+            print(f"Error creating magazine: {e}")
+        finally:
+            conn.close()
 
     def __repr__(self):
         return f'<Magazine {self.name}>'
-    
+
     def __str__(self):
-            return f"Magazine(id={self.id}, name='{self.name}', category='{self.category}')"
+        return f"Magazine(id={self.id}, name='{self.name}', category='{self.category}')"

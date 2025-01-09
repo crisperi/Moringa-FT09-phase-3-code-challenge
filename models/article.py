@@ -1,4 +1,7 @@
 import sqlite3
+from database.connection import get_db_connection
+from models.author import Author
+from models.magazine import Magazine
 
 class Article:
     def __init__(self, title, content, author, magazine):
@@ -19,7 +22,7 @@ class Article:
 
     def create_article(self):
         try:
-            conn = sqlite3.connect('./database/magazine.db')
+            conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute('INSERT INTO articles (title, content, author_id, magazine_id) VALUES (?, ?, ?, ?)', 
                            (self._title, self._content, self._author.id, self._magazine.id))
